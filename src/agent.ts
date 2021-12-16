@@ -1,49 +1,55 @@
 import BigNumber from 'bignumber.js';
 import {
-  BlockEvent,
+  getJsonRpcUrl,
   Finding,
-  HandleBlock,
   HandleTransaction,
   TransactionEvent,
-  FindingSeverity,
-  FindingType,
 } from 'forta-agent';
+import axios from 'axios';
+import { ethers } from 'ethers';
 
-let findingsCount = 0;
+import config from '../agent-config.json';
+import contractAddresses from '../contract-addresses.json';
+import { abi as factoryAbi } from '../abi/UniswapV3Factory.json';
+import { abi as poolAbi } from '../abi/UniswapV3Pool.json';
 
-const handleTransaction: HandleTransaction = async (
-  txEvent: TransactionEvent
-) => {
-  const findings: Finding[] = [];
+type InitializeData = {
+  everestId?: string;
+  provider?: ethers.providers.JsonRpcBatchProvider;
+  factoryContract?: ethers.Contract;
+  flashSwapThresholdUSDBN?: BigNumber;
+  poolAbi?: typeof poolAbi;
+};
 
-  // limiting this agent to emit only 5 findings so that the alert feed is not spammed
-  if (findingsCount >= 5) return findings;
+const initializeData = {};
 
-  // create finding if gas used is higher than threshold
-  const gasUsed = new BigNumber(txEvent.gasUsed);
-  if (gasUsed.isGreaterThan('1000000')) {
-    findings.push(
-      Finding.fromObject({
-        name: 'High Gas Used',
-        description: `Gas Used: ${gasUsed}`,
-        alertId: 'FORTA-1',
-        severity: FindingSeverity.Medium,
-        type: FindingType.Suspicious,
-      })
+function provideInitialize(data: InitializeData) {
+  return async function initalize() {
+    data.everestId = config.EVEREST_ID;
+    data.provider = new ethers.providers.JsonRpcBatchProvider(getJsonRpcUrl());
+    data.factoryContract = new ethers.Contract(
+      contractAddresses.UniswapV3Factory.address,
+      factoryAbi,
+      data.provider
     );
-    findingsCount++;
-  }
+    data.flashSwapThresholdUSDBN = new BigNumber(
+      config.largeFlashSwap.thresholdUSD
+    );
+    data.poolAbi = poolAbi;
+  };
+}
 
-  return findings;
-};
+function provideHandleTransaction(data: InitializeData) {
+  return async function handleTransaction(txEvent: TransactionEvent) {
+    const findings: Finding[] = [];
 
-const handleBlock: HandleBlock = async (blockEvent: BlockEvent) => {
-  const findings: Finding[] = [];
-  // detect some block condition
-  return findings;
-};
+    return findings;
+  };
+}
 
 export default {
-  handleTransaction,
-  handleBlock,
+  provideInitialize,
+  initialize: provideInitialize(initializeData),
+  provideHandleTransaction,
+  handleTransaction: provideHandleTransaction(initializeData),
 };

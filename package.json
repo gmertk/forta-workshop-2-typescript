@@ -1,7 +1,7 @@
 {
-  "name": "forta-agent-starter",
+  "name": "forta-uniswap-agent-flash-swap-walkthrough",
   "version": "0.0.1",
-  "description": "Forta Agent Typescript starter project",
+  "description": "Forta Agent Development Workshop #2",
   "scripts": {
     "build": "tsc",
     "start": "npm run start:dev",
@@ -20,7 +20,9 @@
     "prettier-format": "prettier --config .prettierrc 'src/**/*.ts' --write"
   },
   "dependencies": {
+    "axios": "^0.24.0",
     "bignumber.js": "^9.0.1",
+    "ethers": "^5.5.2",
     "forta-agent": "^0.0.33"
   },
   "devDependencies": {
