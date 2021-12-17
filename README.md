@@ -1,4 +1,4 @@
-# High Gas Agent
+# Uniswap High Flash Swap
 
 ## Description
 
@@ -15,18 +15,38 @@ Following "Forta Agent Development Workshop #2, an example Walkthrough" at  http
 
 Describe each of the type of alerts fired by this agent
 
-- FORTA-1
-  - Fired when a transaction consumes more gas than 1,000,000 gas
-  - Severity is always set to "medium" (mention any conditions where it could be something else)
-  - Type is always set to "suspicious" (mention any conditions where it could be something else)
-  - Mention any other type of metadata fields included with this alert
-
+- AE-FORTA-WORKSHOP2-UNISWAPV3-LARGE-FLASH-SWAP
+  - Fired on any Flash event from a Uniswap V3 Pool contract with USD value exceeding the threshold specified in agent-config.json
+  
 ## Test Data
 
 The agent behaviour can be verified with the following transactions:
 
-- 0x1b71dcc24657989f920d627c7768f545d70fcb861c9a05824f7f5d056968aeee (1,094,700 gas)
-- 0x8df0579bf65e859f87c45b485b8f1879c56bc818043c3a0d6870c410b5013266 (2,348,226 gas)
+- 0x6677c6fcb786dd45a99c8a0e14dec98f8c36eaba498519c043fdf9e12067122c
+
+
+We can find some flash swaps with the following code:
+```
+async function getFlashSwaps(provider: ethers.providers.Provider) {
+  const filter = {
+    fromBlock: 12369739,
+    toBlock: 'latest',
+    topics: [
+      '0xbdbdb71d7860376ba52b25a5028beea23581364a40522f6bcfb86bb1f2dca633',
+    ],
+  };
+
+  const logs = await provider.getLogs(filter);
+
+  logs.forEach((log) => {
+    console.log(log.transactionHash);
+  });
+}
+
+// call in handler
+const provider = new ethers.providers.JsonRpcBatchProvider(getJsonRpcUrl());
+await getFlashSwaps(provider);
+```
 
 ## Links
 - https://docs.uniswap.org/
